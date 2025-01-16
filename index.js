@@ -3,21 +3,38 @@ import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+export default app;
 
-
-
-app.get('/', function (req, res) {
-    res.send('Hello World')
-  })
-
+// Rota para exibir o HTML
+app.get("/", (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Hello World</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    text-align: center;
+                    padding: 50px;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Hello, World!</h1>
+            <p>This is a simple HTML page served by your Node.js backend.</p>
+        </body>
+        </html>
+    `);
+});
 
 
 
 dotenv.config(); 
-
 const app = express();
 app.use(express.json()); 
-app.use(express.static('./pages'));
 
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -342,6 +359,7 @@ app.get('/api/atividades-mensais', autenticarToken, async (req, res) => {
 
 
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`Servidor rodando na porta ${PORT}`);
 });
