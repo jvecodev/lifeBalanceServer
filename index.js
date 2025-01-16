@@ -3,9 +3,13 @@ import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-export default app;
 
-// Rota para exibir o HTML
+dotenv.config(); 
+
+const app = express();  
+app.use(express.json()); 
+
+
 app.get("/", (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -29,12 +33,6 @@ app.get("/", (req, res) => {
         </html>
     `);
 });
-
-
-
-dotenv.config(); 
-const app = express();
-app.use(express.json()); 
 
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -359,6 +357,7 @@ app.get('/api/atividades-mensais', autenticarToken, async (req, res) => {
 
 
 const PORT = process.env.PORT || 3000;
+export default app;
 
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
