@@ -13,8 +13,11 @@ app.use(express.json());
 
 
 app.use(cors({
-    origin: 'https://life-balance-sandy.vercel.app'
-  }));
+    origin: 'https://life-balance-sandy.vercel.app',  
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+    allowedHeaders: ['Content-Type', 'Authorization'],  
+}));
+
 
 app.get("/", (req, res) => {
     res.send(`
@@ -169,7 +172,6 @@ app.get('/api/cadastrar', async (req, res) => {
         res.status(500).json({ message: 'Erro ao buscar usuário' });
     }
 });
-
 
 
 app.post('/api/cadastrar', async (req, res) => {
