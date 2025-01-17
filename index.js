@@ -13,7 +13,7 @@ app.use(express.json());
 
 
 app.use(cors({
-    origin: 'https://life-balance-sandy.vercel.app',  
+    origin: 'https://life-balance-nu.vercel.app',  
     methods: ['GET', 'POST', 'PUT', 'DELETE'], 
     allowedHeaders: ['Content-Type', 'Authorization'],  
 }));
