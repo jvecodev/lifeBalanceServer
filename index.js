@@ -61,6 +61,7 @@ async function verificarConexao() {
 const connection = await verificarConexao(); 
 
 
+
 function autenticarToken(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -79,14 +80,13 @@ function autenticarToken(req, res, next) {
 }
 
 
-
-app.get('/api/perfil', async (req, res) => {
+app.get('/api/perfil', autenticarToken, async (req, res) => {
     try {
-        const query = 'SELECT nome, email FROM Usuario ORDER BY id_usuario DESC LIMIT 1';
-        const [results] = await connection.query(query);
+        const query = 'SELECT nome, email FROM Usuario WHERE id_usuario = ?';
+        const [results] = await connection.query(query, [req.user.id_usuario]);
 
         if (results.length === 0) {
-            return res.status(404).json({ message: 'Nenhum usuário encontrado' });
+            return res.status(404).json({ message: 'Usuário não encontrado' });
         }
 
         res.status(200).json({ usuario: results[0] });
@@ -99,12 +99,11 @@ app.get('/api/perfil', async (req, res) => {
 
 app.delete('/api/perfil', autenticarToken, async (req, res) => {
     try {
-        console.log('Usuário autenticado para exclusão:', req.user);
-        // Consulta para deletar o usuário baseado no ID
         const [resultado] = await connection.query(
             'DELETE FROM Usuario WHERE id_usuario = ?',
             [req.user.id_usuario]
         );
+
         if (resultado.affectedRows > 0) {
             return res.json({ message: 'Usuário deletado com sucesso' });
         } else {
@@ -117,36 +116,29 @@ app.delete('/api/perfil', autenticarToken, async (req, res) => {
 });
 
 app.put('/api/perfil', autenticarToken, async (req, res) => {
-    console.log('Dados recebidos no PUT:', req.body);
-    console.log('Usuário autenticado:', req.user);
+    const { nome, email, senha } = req.body;
 
     try {
-        const { nome, email, senha } = req.body;
-
-
         if (!senha) {
-            const [usuarioAtualizado] = await connection.query(
+            const [resultado] = await connection.query(
                 'UPDATE Usuario SET nome = ?, email = ? WHERE id_usuario = ?',
                 [nome, email, req.user.id_usuario]
             );
 
-            if (usuarioAtualizado.affectedRows > 0) {
+            if (resultado.affectedRows > 0) {
                 return res.json({ message: 'Usuário atualizado com sucesso' });
             } else {
                 return res.status(400).json({ error: 'Usuário não encontrado ou não atualizado' });
             }
         }
 
-
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(senha, saltRounds);
-
-        const [senhaAtualizada] = await connection.query(
+        const hashedPassword = await bcrypt.hash(senha, 10);
+        const [resultadoSenha] = await connection.query(
             'UPDATE Usuario SET senha = ? WHERE id_usuario = ?',
             [hashedPassword, req.user.id_usuario]
         );
 
-        if (senhaAtualizada.affectedRows > 0) {
+        if (resultadoSenha.affectedRows > 0) {
             return res.json({ message: 'Senha atualizada com sucesso' });
         } else {
             return res.status(400).json({ error: 'Erro ao atualizar a senha' });
@@ -159,19 +151,22 @@ app.put('/api/perfil', autenticarToken, async (req, res) => {
 
     
 
-app.get('/api/cadastrar', async (req, res) => {
-    const query = 'SELECT nome FROM Usuario ORDER BY id_usuario DESC LIMIT 1'; 
+app.get('/api/cadastrar', autenticarToken, async (req, res) => {
     try {
-        const [results] = await connection.query(query);
+        const query = 'SELECT nome, email FROM Usuario WHERE id_usuario = ?';
+        const [results] = await connection.query(query, [req.user.id_usuario]);
+
         if (results.length === 0) {
-            return res.status(404).json({ message: 'Nenhum usuário encontrado' });
+            return res.status(404).json({ message: 'Usuário não encontrado' });
         }
-        res.status(200).json({ nome: results[0].nome });
+
+        res.status(200).json({ usuario: results[0] });
     } catch (error) {
         console.error('Erro ao buscar usuário:', error);
         res.status(500).json({ message: 'Erro ao buscar usuário' });
     }
 });
+
 
 
 app.post('/api/cadastrar', async (req, res) => {
@@ -185,9 +180,15 @@ app.post('/api/cadastrar', async (req, res) => {
         const hashedPassword = bcrypt.hashSync(senha, 10);
 
         const query = 'INSERT INTO Usuario (nome, email, senha) VALUES (?, ?, ?)';
-        await connection.query(query, [nome, email, hashedPassword]);
+        const [result] = await connection.query(query, [nome, email, hashedPassword]);
 
-        res.status(201).json({ message: 'Usuário cadastrado com sucesso' });
+        const token = jwt.sign(
+            { id_usuario: result.insertId },
+            process.env.JWT_SECRET,
+            { expiresIn: '30d' }
+        );
+
+        res.status(201).json({ message: 'Usuário cadastrado com sucesso', token });
     } catch (err) {
         console.error('Erro ao cadastrar usuário:', err);
         res.status(500).json({ message: 'Erro ao cadastrar usuário', error: err });
