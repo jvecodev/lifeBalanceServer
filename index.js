@@ -3,12 +3,18 @@ import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import cors from 'cors';
+
 
 dotenv.config(); 
 
 const app = express();  
 app.use(express.json()); 
 
+
+app.use(cors({
+    origin: 'https://life-balance-sandy.vercel.app'
+  }));
 
 app.get("/", (req, res) => {
     res.send(`
