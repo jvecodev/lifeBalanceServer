@@ -363,7 +363,7 @@ app.get('/api/atividades-mensais', autenticarToken, async (req, res) => {
         res.status(500).json({ message: 'Erro ao buscar contagem mensal' });
     }
 });
-app.delete('/api/atividades/:id', autenticarToken, async (req, res) => {
+app.delete('/api/atividades/:id_atividade ', autenticarToken, async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -378,7 +378,7 @@ app.delete('/api/atividades/:id', autenticarToken, async (req, res) => {
         }
 
         
-        const queryDelete = 'DELETE FROM Atividades WHERE id = ?';
+        const queryDelete = 'DELETE FROM Atividades WHERE id_atividade =  ?';
         await connection.query(queryDelete, [id]);
 
         res.status(200).json({ message: 'Atividade excluída com sucesso.' });
