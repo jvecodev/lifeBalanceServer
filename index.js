@@ -363,13 +363,12 @@ app.get('/api/atividades-mensais', autenticarToken, async (req, res) => {
         res.status(500).json({ message: 'Erro ao buscar contagem mensal' });
     }
 });
-app.delete('/api/atividades/:id_atividade ', autenticarToken, async (req, res) => {
+app.delete('/api/atividades/:id_atividade', autenticarToken, async (req, res) => {
     const { id_atividade } = req.params;
 
     try {
         const idUsuario = req.user.id_usuario;
 
-        
         const queryCheck = 'SELECT * FROM Atividades WHERE id_atividade = ? AND id_usuario = ?';
         const [atividade] = await connection.query(queryCheck, [id_atividade, idUsuario]);
 
@@ -377,8 +376,7 @@ app.delete('/api/atividades/:id_atividade ', autenticarToken, async (req, res) =
             return res.status(404).json({ message: 'Atividade não encontrada ou você não tem permissão para excluí-la.' });
         }
 
-        
-        const queryDelete = 'DELETE FROM Atividades WHERE id_atividade =  ?';
+        const queryDelete = 'DELETE FROM Atividades WHERE id_atividade = ?';
         await connection.query(queryDelete, [id_atividade]);
 
         res.status(200).json({ message: 'Atividade excluída com sucesso.' });
